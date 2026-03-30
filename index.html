@@ -3,74 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart AI Bot</title>
+<title>Smart AI Real Estate Bot</title>
 
 <style>
 body {
   margin:0;
-  font-family:Arial;
+  font-family: Arial;
   background:#0f172a;
   color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
 
 .container {
-  max-width:500px;
-  margin:40px auto;
+  width:400px;
   background:#1e293b;
-  border-radius:15px;
-  padding:15px;
-  box-shadow:0 0 25px rgba(0,0,0,0.6);
+  border-radius:12px;
+  padding:20px;
+  box-shadow:0 0 20px rgba(0,0,0,0.3);
 }
 
-.chat {
-  height:400px;
+h2 {
+  text-align:center;
+}
+
+.chat-box {
+  height:300px;
   overflow-y:auto;
+  background:#0f172a;
   padding:10px;
-  background:#020617;
-  border-radius:10px;
+  border-radius:8px;
+  margin-bottom:10px;
 }
 
 .msg {
-  padding:10px;
   margin:8px 0;
-  border-radius:10px;
-  max-width:80%;
 }
 
 .user {
-  background:#22c55e;
-  color:black;
-  margin-left:auto;
+  text-align:right;
 }
 
 .bot {
-  background:#334155;
-}
-
-.input-area {
-  display:flex;
-  gap:10px;
-  margin-top:10px;
+  text-align:left;
+  color:#22c55e;
 }
 
 input {
-  flex:1;
-  padding:12px;
-  border-radius:10px;
+  width:100%;
+  padding:10px;
   border:none;
+  border-radius:8px;
+  margin-top:5px;
 }
 
 button {
-  padding:12px;
+  width:100%;
+  padding:10px;
+  margin-top:5px;
   border:none;
-  border-radius:10px;
+  border-radius:8px;
   background:#22c55e;
+  color:white;
   cursor:pointer;
-}
-
-.typing {
-  opacity:0.6;
-  font-size:14px;
 }
 </style>
 </head>
@@ -78,70 +75,6 @@ button {
 <body>
 
 <div class="container">
-  <h2>🤖 Smart AI Real Estate Bot</h2>
+  <h2>🤖 Smart Real Estate Bot</h2>
 
-  <div id="chat" class="chat"></div>
-
-  <div class="input-area">
-    <input id="msg" placeholder="اكتب أو Type..." />
-    <button onclick="sendMessage()">Send</button>
-  </div>
-</div>
-
-<script>
-const chat = document.getElementById("chat");
-const input = document.getElementById("msg");
-
-// تحميل المحادثة القديمة
-chat.innerHTML = localStorage.getItem("chat") || "";
-
-function saveChat() {
-  localStorage.setItem("chat", chat.innerHTML);
-}
-
-function addMessage(text, type) {
-  const div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerHTML = text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-  saveChat();
-}
-
-// detect language
-function isArabic(text) {
-  return /[\u0600-\u06FF]/.test(text);
-}
-
-async function sendMessage() {
-  const userMsg = input.value.trim();
-  if (!userMsg) return;
-
-  addMessage("🧑 " + userMsg, "user");
-
-  input.value = "";
-
-  // typing indicator
-  const typing = document.createElement("div");
-  typing.className = "msg bot typing";
-  typing.innerText = isArabic(userMsg) ? "🤖 يكتب..." : "🤖 typing...";
-  chat.appendChild(typing);
-  chat.scrollTop = chat.scrollHeight;
-
-  try {
-    const res = await fetch("https://gha85.app.n8n.cloud/webhook/smart-bot?message=" + encodeURIComponent(userMsg));
-    const data = await res.json();
-
-    typing.remove();
-
-    addMessage("🤖 " + data.reply, "bot");
-
-  } catch (err) {
-    typing.remove();
-    addMessage("⚠️ Error connecting to server", "bot");
-  }
-}
-</script>
-
-</body>
-</html>
+  <div id="chat" class="chat-box"></div
