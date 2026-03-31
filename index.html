@@ -8,8 +8,8 @@
 <style>
 body {
   margin:0;
-  font-family: Arial;
-  background:#0f172a;
+  font-family:Arial;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   color:white;
   display:flex;
   justify-content:center;
@@ -17,24 +17,114 @@ body {
   height:100vh;
 }
 
-.container {
+.chat-container {
   width:400px;
-  background:#1e293b;
-  border-radius:12px;
-  padding:20px;
-  box-shadow:0 0 20px rgba(0,0,0,0.3);
+  max-width:95%;
+  background:#0f172a;
+  border-radius:15px;
+  box-shadow:0 0 20px rgba(0,0,0,0.5);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
 }
 
-h2 {
+.header {
+  padding:15px;
+  background:#1e293b;
+  font-weight:bold;
   text-align:center;
 }
 
 .chat-box {
-  height:300px;
+  height:400px;
   overflow-y:auto;
-  background:#0f172a;
   padding:10px;
+}
+
+.msg {
+  margin:8px 0;
+  padding:10px;
+  border-radius:10px;
+  max-width:80%;
+}
+
+.user {
+  background:#22c55e;
+  align-self:flex-end;
+}
+
+.bot {
+  background:#334155;
+  align-self:flex-start;
+}
+
+.input-area {
+  display:flex;
+  padding:10px;
+  background:#1e293b;
+}
+
+input {
+  flex:1;
+  padding:10px;
+  border:none;
   border-radius:8px;
+  margin-right:5px;
+}
+
+button {
+  padding:10px 15px;
+  border:none;
+  background:#22c55e;
+  color:white;
+  border-radius:8px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="chat-container">
+
+<div class="header">
+🤖 Smart Real Estate AI Bot
+</div>
+
+<div id="chat" class="chat-box"></div>
+
+<div class="input-area">
+<input id="msg" placeholder="اكتب أو Write..." />
+<button onclick="sendMessage()">Send</button>
+</div>
+
+</div>
+
+<script>
+async function sendMessage() {
+  const msgInput = document.getElementById("msg");
+  const chat = document.getElementById("chat");
+
+  const userMsg = msgInput.value;
+  if (!userMsg) return;
+
+  chat.innerHTML += `<div class="msg user">${userMsg}</div>`;
+
+  msgInput.value = "";
+
+  chat.innerHTML += `<div class="msg bot">...</div>`;
+
+  const res = await fetch("https://gha85.app.n8n.cloud/webhook/smart-bot?message=" + encodeURIComponent(userMsg));
+  const data = await res.json();
+
+  chat.lastChild.innerHTML = data.reply;
+
+  chat.scrollTop = chat.scrollHeight;
+}
+</script>
+
+</body>
+</html>  border-radius:8px;
   margin-bottom:10px;
 }
 
