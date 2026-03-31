@@ -606,6 +606,12 @@
     removeTyping();
     appendBot('هلا 👋 وش تدور عليه؟\nشقة أو فيلا؟ وكم ميزانيتك؟');
   });
+ document.getElementById("userInput").addEventListener("keydown", function(e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
 </script>
 </body>
 </html>
