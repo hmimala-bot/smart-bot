@@ -77,7 +77,37 @@ button {
 </div>
 
 <script>
+<script>
+const input = document.getElementById("msg");
+
+// 🔥 إرسال بالزر
 async function send() {
+  const msg = input.value.trim();
+  const chat = document.getElementById("chatBox");
+
+  if (!msg) return;
+
+  chat.innerHTML += `<div class="msg user">${msg}</div>`;
+
+  input.value = "";
+
+  chat.innerHTML += `<div class="msg bot">...</div>`;
+
+  const res = await fetch("https://gha85.app.n8n.cloud/webhook/smart-bot?message=" + encodeURIComponent(msg));
+  const data = await res.json();
+
+  chat.lastChild.innerHTML = data.reply;
+
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// 🔥 إرسال بزر Enter
+input.addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
+    send();
+  }
+});
+</script>
   const msg = document.getElementById("msg").value;
   const chat = document.getElementById("chatBox");
 
