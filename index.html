@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart AI Real Estate Bot</title>
+
+<title>Smart Bot</title>
 
 <style>
 body {
   margin:0;
   font-family:Arial;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
+  background:#0f172a;
   color:white;
   display:flex;
   justify-content:center;
@@ -17,114 +18,16 @@ body {
   height:100vh;
 }
 
-.chat-container {
+.chat {
   width:400px;
-  max-width:95%;
-  background:#0f172a;
-  border-radius:15px;
-  box-shadow:0 0 20px rgba(0,0,0,0.5);
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
 }
 
-.header {
-  padding:15px;
+#chatBox {
+  height:300px;
+  overflow:auto;
   background:#1e293b;
-  font-weight:bold;
-  text-align:center;
-}
-
-.chat-box {
-  height:400px;
-  overflow-y:auto;
-  padding:10px;
-}
-
-.msg {
-  margin:8px 0;
   padding:10px;
   border-radius:10px;
-  max-width:80%;
-}
-
-.user {
-  background:#22c55e;
-  align-self:flex-end;
-}
-
-.bot {
-  background:#334155;
-  align-self:flex-start;
-}
-
-.input-area {
-  display:flex;
-  padding:10px;
-  background:#1e293b;
-}
-
-input {
-  flex:1;
-  padding:10px;
-  border:none;
-  border-radius:8px;
-  margin-right:5px;
-}
-
-button {
-  padding:10px 15px;
-  border:none;
-  background:#22c55e;
-  color:white;
-  border-radius:8px;
-  cursor:pointer;
-}
-</style>
-</head>
-
-<body>
-
-<div class="chat-container">
-
-<div class="header">
-🤖 Smart Real Estate AI Bot
-</div>
-
-<div id="chat" class="chat-box"></div>
-
-<div class="input-area">
-<input id="msg" placeholder="اكتب أو Write..." />
-<button onclick="sendMessage()">Send</button>
-</div>
-
-</div>
-
-<script>
-async function sendMessage() {
-  const msgInput = document.getElementById("msg");
-  const chat = document.getElementById("chat");
-
-  const userMsg = msgInput.value;
-  if (!userMsg) return;
-
-  chat.innerHTML += `<div class="msg user">${userMsg}</div>`;
-
-  msgInput.value = "";
-
-  chat.innerHTML += `<div class="msg bot">...</div>`;
-
-  const res = await fetch("https://gha85.app.n8n.cloud/webhook/smart-bot?message=" + encodeURIComponent(userMsg));
-  const data = await res.json();
-
-  chat.lastChild.innerHTML = data.reply;
-
-  chat.scrollTop = chat.scrollHeight;
-}
-</script>
-
-</body>
-</html>  border-radius:8px;
   margin-bottom:10px;
 }
 
@@ -164,7 +67,22 @@ button {
 
 <body>
 
-<div class="container">
-  <h2>🤖 Smart Real Estate Bot</h2>
+<div class="chat">
+<h2>🤖 Smart Real Estate Bot</h2>
 
-  <div id="chat" class="chat-box"></div
+<div id="chatBox"></div>
+
+<input id="msg" placeholder="اكتب هنا..." />
+<button onclick="send()">إرسال</button>
+</div>
+
+<script>
+async function send() {
+  const msg = document.getElementById("msg").value;
+  const chat = document.getElementById("chatBox");
+
+  if(!msg) return;
+
+  chat.innerHTML += `<div class="msg user">${msg}</div>`;
+
+  const res = await fetch("https://gha85.app.n8n.cloud/webhook/s
