@@ -1,174 +1,611 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>المستشار العقاري</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-body {
-  font-family: Arial;
-  margin: 0;
-  background: #0b141a;
-}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* الهيدر */
-.header {
-  background: #075e54;
-  color: white;
-  padding: 12px;
-  text-align: center;
-  font-weight: bold;
-}
+  body {
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+  }
 
-/* الشات */
-#chat {
-  height: 70vh;
-  overflow-y: auto;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  background-image: url("https://i.imgur.com/1bX5QH6.png");
-}
+  .phone-shell {
+    width: 320px;
+    height: 580px;
+    background: #0a0a0f;
+    border-radius: 36px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 30px 80px rgba(0,0,0,0.7),
+      0 10px 30px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
 
-/* الرسائل */
-.msg {
-  padding: 10px 14px;
-  border-radius: 10px;
-  margin: 6px 0;
-  max-width: 75%;
-  line-height: 1.5;
-  font-size: 14px;
-}
+  /* Subtle gradient overlay on the shell */
+  .phone-shell::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, transparent 50%);
+    border-radius: 36px;
+    pointer-events: none;
+    z-index: 10;
+  }
 
-/* المستخدم (يمين) */
-.user {
-  background: #25d366;
-  color: black;
-  align-self: flex-end;
-  border-bottom-right-radius: 2px;
-}
+  /* ── HEADER ── */
+  .chat-header {
+    background: linear-gradient(135deg, #111118 0%, #16161f 100%);
+    padding: 16px 18px 14px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 5;
+  }
 
-/* البوت (يسار) */
-.bot {
-  background: #202c33;
-  color: white;
-  align-self: flex-start;
-  border-bottom-left-radius: 2px;
-}
+  .header-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c9a96e, #f0d080, #a07840);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(201,169,110,0.3), 0 4px 12px rgba(201,169,110,0.2);
+    position: relative;
+  }
 
-/* الكتابة */
-.typing {
-  font-size: 12px;
-  color: #ccc;
-  margin: 5px;
-}
+  .online-dot {
+    width: 10px;
+    height: 10px;
+    background: #22c55e;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 1px;
+    left: 1px;
+    border: 2px solid #111118;
+    box-shadow: 0 0 6px rgba(34,197,94,0.7);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
 
-/* الإدخال */
-#inputBox {
-  display: flex;
-  padding: 10px;
-  background: #202c33;
-}
+  @keyframes pulse-dot {
+    0%, 100% { box-shadow: 0 0 6px rgba(34,197,94,0.7); }
+    50% { box-shadow: 0 0 12px rgba(34,197,94,1); }
+  }
 
-input {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  outline: none;
-  border-radius: 20px;
-  background: #2a3942;
-  color: white;
-}
+  .header-info { flex: 1; }
 
-/* زر الإرسال */
-button {
-  margin-left: 10px;
-  border: none;
-  background: #25d366;
-  color: black;
-  border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  cursor: pointer;
-  font-size: 18px;
-}
+  .header-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f0e8d8;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+  }
 
-button:hover {
-  opacity: 0.9;
-}
+  .header-status {
+    font-size: 11px;
+    color: #22c55e;
+    font-weight: 400;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .header-badge {
+    background: linear-gradient(135deg, #c9a96e, #f0d080);
+    color: #1a1008;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .header-menu {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .header-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: rgba(255,255,255,0.4);
+    font-size: 14px;
+  }
+
+  .header-icon:hover { background: rgba(255,255,255,0.1); }
+
+  /* ── MESSAGES ── */
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #0d0d14;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(201,169,110,0.03) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(100,80,200,0.03) 0%, transparent 50%);
+    scroll-behavior: smooth;
+  }
+
+  .chat-messages::-webkit-scrollbar { width: 3px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+  /* Date divider */
+  .date-divider {
+    text-align: center;
+    margin: 6px 0 10px;
+  }
+
+  .date-divider span {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.35);
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 400;
+  }
+
+  /* Message wrapper */
+  .msg-wrap {
+    display: flex;
+    flex-direction: column;
+    max-width: 82%;
+    animation: msgIn 0.3s cubic-bezier(0.34, 1.3, 0.64, 1) both;
+  }
+
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .msg-wrap.bot { align-self: flex-start; align-items: flex-start; }
+  .msg-wrap.user { align-self: flex-end; align-items: flex-end; }
+
+  /* Bot avatar micro */
+  .bot-avatar-mini {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c9a96e, #f0d080);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    margin-bottom: 2px;
+  }
+
+  .bubble {
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    font-weight: 400;
+    word-break: break-word;
+    position: relative;
+  }
+
+  .bubble.bot {
+    background: linear-gradient(135deg, #1e1e2e, #242436);
+    color: #e8e0d0;
+    border-radius: 4px 18px 18px 18px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+
+  .bubble.user {
+    background: linear-gradient(135deg, #1a7a45, #22a85a);
+    color: #fff;
+    border-radius: 18px 4px 18px 18px;
+    box-shadow: 0 2px 12px rgba(26,122,69,0.35);
+  }
+
+  .msg-time {
+    font-size: 9.5px;
+    color: rgba(255,255,255,0.25);
+    margin-top: 3px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .msg-time.user { color: rgba(255,255,255,0.3); }
+
+  .tick { color: #22c55e; font-size: 10px; }
+
+  /* Typing indicator */
+  .typing-wrap {
+    display: flex;
+    flex-direction: column;
+    max-width: 82%;
+    align-self: flex-start;
+    align-items: flex-start;
+    animation: msgIn 0.3s ease both;
+  }
+
+  .typing-bubble {
+    background: linear-gradient(135deg, #1e1e2e, #242436);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 4px 18px 18px 18px;
+    padding: 12px 16px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .typing-dot {
+    width: 7px;
+    height: 7px;
+    background: rgba(201,169,110,0.7);
+    border-radius: 50%;
+    animation: typing 1.2s ease-in-out infinite;
+  }
+
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* ── INPUT AREA ── */
+  .chat-input-area {
+    background: #111118;
+    padding: 10px 12px 14px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .input-box {
+    flex: 1;
+    background: #1a1a26;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 22px;
+    padding: 10px 14px;
+    color: #e8e0d0;
+    font-size: 13px;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    resize: none;
+    outline: none;
+    max-height: 80px;
+    min-height: 40px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    direction: rtl;
+    line-height: 1.4;
+  }
+
+  .input-box::placeholder { color: rgba(255,255,255,0.22); }
+
+  .input-box:focus {
+    border-color: rgba(201,169,110,0.4);
+    box-shadow: 0 0 0 3px rgba(201,169,110,0.08);
+  }
+
+  .send-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c9a96e, #f0d080);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.18s cubic-bezier(0.34,1.5,0.64,1), box-shadow 0.18s, opacity 0.2s;
+    box-shadow: 0 4px 14px rgba(201,169,110,0.4);
+  }
+
+  .send-btn:hover:not(:disabled) {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(201,169,110,0.55);
+  }
+
+  .send-btn:active:not(:disabled) { transform: scale(0.95); }
+
+  .send-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .send-btn svg { width: 18px; height: 18px; fill: #1a1008; transform: rotate(180deg); }
+
+  /* ── QUICK REPLIES ── */
+  .quick-replies {
+    display: flex;
+    gap: 6px;
+    padding: 6px 14px 4px;
+    overflow-x: auto;
+    background: #0d0d14;
+    flex-shrink: 0;
+  }
+
+  .quick-replies::-webkit-scrollbar { display: none; }
+
+  .quick-btn {
+    white-space: nowrap;
+    background: rgba(201,169,110,0.1);
+    border: 1px solid rgba(201,169,110,0.25);
+    color: #c9a96e;
+    font-size: 11.5px;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .quick-btn:hover { background: rgba(201,169,110,0.2); transform: translateY(-1px); }
+  .quick-btn:active { transform: scale(0.96); }
+
+  /* ── POWERED BY ── */
+  .powered {
+    text-align: center;
+    font-size: 9.5px;
+    color: rgba(255,255,255,0.15);
+    padding: 4px 0 6px;
+    background: #111118;
+    letter-spacing: 0.03em;
+  }
+
+  .powered span { color: rgba(201,169,110,0.4); }
 </style>
 </head>
-
 <body>
 
-<div class="header">
-  🏡 المستشار العقاري
-</div>
+<div class="phone-shell">
 
-<div id="chat"></div>
+  <!-- HEADER -->
+  <div class="chat-header">
+    <div class="header-avatar">
+      🏠
+      <div class="online-dot"></div>
+    </div>
+    <div class="header-info">
+      <div class="header-name">أحمد أبو زيد للعقارات</div>
+      <div class="header-status">● متصل الآن</div>
+    </div>
+    <div class="header-menu">
+      <div class="header-badge">وكيل ذكي</div>
+    </div>
+  </div>
 
-<div id="inputBox">
-  <input id="msg" placeholder="اكتب رسالتك..." />
-  <button onclick="send()">➤</button>
+  <!-- MESSAGES -->
+  <div class="chat-messages" id="chatMessages">
+    <div class="date-divider"><span>اليوم</span></div>
+  </div>
+
+  <!-- QUICK REPLIES -->
+  <div class="quick-replies" id="quickReplies">
+    <button class="quick-btn" onclick="sendQuick('شقة')">🏢 شقة</button>
+    <button class="quick-btn" onclick="sendQuick('فيلا')">🏡 فيلا</button>
+    <button class="quick-btn" onclick="sendQuick('أرض')">🌿 أرض</button>
+    <button class="quick-btn" onclick="sendQuick('مكتب')">💼 مكتب</button>
+    <button class="quick-btn" onclick="sendQuick('ميزانيتي 3000')">💰 3000 درهم</button>
+    <button class="quick-btn" onclick="sendQuick('عجمان')">📍 عجمان</button>
+    <button class="quick-btn" onclick="sendQuick('دبي')">🌆 دبي</button>
+  </div>
+
+  <!-- INPUT -->
+  <div class="chat-input-area">
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+      </svg>
+    </button>
+    <textarea
+      class="input-box"
+      id="userInput"
+      placeholder="مثال: شقة في عجمان 4000"
+      rows="1"
+      onkeydown="handleKey(event)"
+      oninput="handleInput(this)"
+    ></textarea>
+  </div>
+
+  <div class="powered">مدعوم بـ <span>الذكاء الاصطناعي ✦</span></div>
+
 </div>
 
 <script>
+  const messagesEl = document.getElementById('chatMessages');
+  const inputEl    = document.getElementById('userInput');
+  const sendBtnEl  = document.getElementById('sendBtn');
+  const quickEl    = document.getElementById('quickReplies');
 
-let sending = false;
+  let isWaiting = false;
 
-function addMessage(text, type) {
-  let div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerText = text;
+  function getTime() {
+    const d = new Date();
+    return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  }
 
-  let chat = document.getElementById("chat");
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-}
+  function appendBot(text) {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg-wrap bot';
 
-function send() {
-  if (sending) return;
+    const avatarMini = document.createElement('div');
+    avatarMini.className = 'bot-avatar-mini';
+    avatarMini.textContent = '🏠';
 
-  let input = document.getElementById("msg");
-  let message = input.value.trim();
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble bot';
+    bubble.innerHTML = text.replace(/\n/g, '<br>');
 
-  if (!message) return;
+    const timeEl = document.createElement('div');
+    timeEl.className = 'msg-time';
+    timeEl.textContent = getTime();
 
-  sending = true;
+    wrap.appendChild(avatarMini);
+    wrap.appendChild(bubble);
+    wrap.appendChild(timeEl);
+    messagesEl.appendChild(wrap);
+    scrollToBottom();
+  }
 
-  addMessage(message, "user");
-  input.value = "";
+  function appendUser(text) {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg-wrap user';
 
-  let typing = document.createElement("div");
-  typing.className = "typing";
-  typing.innerText = "يكتب...";
-  document.getElementById("chat").appendChild(typing);
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble user';
+    bubble.textContent = text;
 
-  fetch("https://gha85.app.n8n.cloud/webhook/real-estate-chat?message=" + encodeURIComponent(message))
-    .then(res => res.text())
-    .then(data => {
-      typing.remove();
-      addMessage(data, "bot");
-      sending = false;
-    })
-    .catch(() => {
-      typing.remove();
-      addMessage("صار خطأ، حاول مرة ثانية", "bot");
-      sending = false;
-    });
-}
+    const timeEl = document.createElement('div');
+    timeEl.className = 'msg-time user';
+    timeEl.innerHTML = getTime() + ' <span class="tick">✓✓</span>';
 
-/* Enter */
-document.getElementById("msg").addEventListener("keypress", function(e) {
-  if (e.key === "Enter") send();
-});
+    wrap.appendChild(bubble);
+    wrap.appendChild(timeEl);
+    messagesEl.appendChild(wrap);
+    scrollToBottom();
+  }
 
-/* رسالة أولية */
-window.onload = () => {
-  addMessage("هلا 👋 وش تدور عليه؟ شقة أو فيلا؟ وكم ميزانيتك؟", "bot");
-};
+  function showTyping() {
+    const wrap = document.createElement('div');
+    wrap.className = 'typing-wrap';
+    wrap.id = 'typingIndicator';
 
+    const avatarMini = document.createElement('div');
+    avatarMini.className = 'bot-avatar-mini';
+    avatarMini.textContent = '🏠';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'typing-bubble';
+    bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+    wrap.appendChild(avatarMini);
+    wrap.appendChild(bubble);
+    messagesEl.appendChild(wrap);
+    scrollToBottom();
+  }
+
+  function removeTyping() {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+  }
+
+  function scrollToBottom() {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function setWaiting(val) {
+    isWaiting = val;
+    sendBtnEl.disabled = val || inputEl.value.trim() === '';
+    inputEl.disabled = val;
+  }
+
+  function handleInput(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+    sendBtnEl.disabled = isWaiting || el.value.trim() === '';
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  async function sendMessage(overrideText) {
+    const text = overrideText || inputEl.value.trim();
+    if (!text || isWaiting) return;
+
+    if (!overrideText) {
+      inputEl.value = '';
+      inputEl.style.height = 'auto';
+    }
+
+    sendBtnEl.disabled = true;
+    appendUser(text);
+    setWaiting(true);
+
+    const delay = 800 + Math.random() * 700;
+    await sleep(300);
+    showTyping();
+
+    try {
+      await sleep(delay);
+      const url = 'https://gha85.app.n8n.cloud/webhook/real-estate-chat?message=' + encodeURIComponent(text);
+      const res = await fetch(url, { method: 'GET' });
+
+      let reply = '';
+      if (res.ok) {
+        const raw = await res.text();
+        try {
+          const json = JSON.parse(raw);
+          reply = json.reply || json.response || json.message || json.text || raw;
+        } catch {
+          reply = raw;
+        }
+      } else {
+        reply = 'صار خطأ بسيط، جرب مرة ثانية 🙏';
+      }
+
+      removeTyping();
+      appendBot(reply || 'صار خطأ بسيط، جرب مرة ثانية 🙏');
+    } catch (err) {
+      removeTyping();
+      appendBot('صار خطأ بسيط، جرب مرة ثانية 🙏');
+    }
+
+    setWaiting(false);
+  }
+
+  function sendQuick(text) {
+    if (isWaiting) return;
+    sendMessage(text);
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  /* ── Boot greeting ── */
+  window.addEventListener('load', async () => {
+    await sleep(600);
+    showTyping();
+    await sleep(1400);
+    removeTyping();
+    appendBot('هلا 👋 وش تدور عليه؟\nشقة أو فيلا؟ وكم ميزانيتك؟');
+  });
 </script>
-
 </body>
 </html>
