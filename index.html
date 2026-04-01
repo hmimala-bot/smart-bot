@@ -1,63 +1,284 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+// ============================================================
+// OPTIMIZED CHAT ENGINE — Production Grade
+// Ahmed Abu Zaid Real Estate Chatbot
+// ============================================================
 
-  body {
-    background: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    font-family: 'IBM Plex Sans Arabic', sans-serif;
+(function () {
+  "use strict";
+
+  // ── CONFIG ──────────────────────────────────────────────────
+  const API_ENDPOINT = "https://gha85.app.n8n.cloud/webhook/real-estate-chat";
+  const TYPING_MIN_MS = 400; // minimum typing indicator visibility (UX feel)
+
+  // ── STATE ───────────────────────────────────────────────────
+  let isRequesting = false;
+  let lastBotMessage = "";
+  let lastUserMessage = "";
+  let messageQueue = [];
+  let isProcessingQueue = false;
+
+  // ── DOM REFS ─────────────────────────────────────────────────
+  const chatMessages = document.getElementById("chat-messages");
+  const userInput = document.getElementById("user-input");
+  const sendButton = document.getElementById("send-button");
+  const typingIndicator = document.getElementById("typing-indicator");
+
+  // ── VAGUE / UNCLEAR INPUT DETECTION ─────────────────────────
+  const vaguePatterns = [
+    /^مدري$/i,
+    /^لا أدري$/i,
+    /^ما أدري$/i,
+    /^يمكن$/i,
+    /^ربما$/i,
+    /^اوك$/i,
+    /^ok$/i,
+    /^okay$/i,
+    /^هممم?$/i,
+    /^اه+$/i,
+    /^نعم$/i,
+    /^لا$/i,
+    /^yes$/i,
+    /^no$/i,
+    /^\.+$/,
+    /^،+$/,
+    /^!+$/,
+    /^؟+$/,
+    /^\?+$/,
+  ];
+
+  const vagueResponses = [
+    "يسعدني مساعدتك 😊 هل تبحث عن شقة، فيلا، أو أرض؟ وما هي الميزانية التقريبية؟",
+    "لا مشكلة! أخبرني أكثر — هل تريد إيجار أم شراء؟ وفي أي منطقة تفضل؟",
+    "ممتاز! لنبدأ من الأساس — ما نوع العقار الذي يناسبك؟ 🏠",
+    "بكل سرور! حدد لي المنطقة أو الميزانية وسأجد لك أفضل الخيارات المتاحة.",
+  ];
+
+  let vagueIndex = 0;
+
+  function isVagueInput(text) {
+    const trimmed = text.trim();
+    if (trimmed.length <= 2) return true;
+    return vaguePatterns.some((p) => p.test(trimmed));
   }
 
-  .phone-shell {
-    width: 320px;
-    height: 580px;
-    background: #0a0a0f;
-    border-radius: 36px;
-    box-shadow:
-      0 0 0 1px rgba(255,255,255,0.06),
-      0 30px 80px rgba(0,0,0,0.7),
-      0 10px 30px rgba(0,0,0,0.5),
-      inset 0 1px 0 rgba(255,255,255,0.08);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    position: relative;
+  function getVagueResponse() {
+    const response = vagueResponses[vagueIndex % vagueResponses.length];
+    vagueIndex++;
+    return response;
   }
 
-  /* Subtle gradient overlay on the shell */
-  .phone-shell::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, transparent 50%);
-    border-radius: 36px;
-    pointer-events: none;
-    z-index: 10;
+  // ── SCROLL ───────────────────────────────────────────────────
+  function scrollToBottom() {
+    requestAnimationFrame(() => {
+      chatMessages.scrollTo({
+        top: chatMessages.scrollHeight,
+        behavior: "smooth",
+      });
+    });
   }
 
-  /* ── HEADER ── */
-  .chat-header {
-    background: linear-gradient(135deg, #111118 0%, #16161f 100%);
-    padding: 16px 18px 14px;
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    flex-shrink: 0;
-    position: relative;
-    z-index: 5;
+  // ── TYPING INDICATOR ─────────────────────────────────────────
+  function showTyping() {
+    if (typingIndicator) {
+      typingIndicator.style.display = "flex";
+      scrollToBottom();
+    }
   }
 
-  .header-avatar {
-    width: 42px;
+  function hideTyping() {
+    if (typingIndicator) {
+      typingIndicator.style.display = "none";
+    }
+  }
+
+  // ── MESSAGE RENDERING ────────────────────────────────────────
+  function appendMessage(text, sender) {
+    // Prevent exact duplicate consecutive bot messages
+    if (sender === "bot" && text === lastBotMessage) return;
+    if (sender === "bot") lastBotMessage = text;
+
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("message", sender === "user" ? "user-message" : "bot-message");
+
+    const bubble = document.createElement("div");
+    bubble.classList.add("message-bubble");
+    bubble.textContent = text;
+
+    wrapper.appendChild(bubble);
+    chatMessages.appendChild(wrapper);
+    scrollToBottom();
+  }
+
+  // ── LOCK / UNLOCK UI ─────────────────────────────────────────
+  function lockUI() {
+    isRequesting = true;
+    if (sendButton) sendButton.disabled = true;
+    if (userInput) userInput.disabled = true;
+  }
+
+  function unlockUI() {
+    isRequesting = false;
+    if (sendButton) sendButton.disabled = false;
+    if (userInput) {
+      userInput.disabled = false;
+      userInput.focus();
+    }
+  }
+
+  // ── API CALL ─────────────────────────────────────────────────
+  async function fetchBotReply(message) {
+    const url = `${API_ENDPOINT}?message=${encodeURIComponent(message)}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        signal: controller.signal,
+        headers: {
+          Accept: "application/json, text/plain, */*",
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const contentType = response.headers.get("content-type") || "";
+      let reply = "";
+
+      if (contentType.includes("application/json")) {
+        const data = await response.json();
+        // Support various n8n response shapes
+        reply =
+          data?.reply ||
+          data?.message ||
+          data?.text ||
+          data?.output ||
+          (Array.isArray(data) && data[0]?.reply) ||
+          (Array.isArray(data) && data[0]?.message) ||
+          "";
+      } else {
+        reply = (await response.text()).trim();
+      }
+
+      return reply || "عذراً، لم أتلقَّ رداً واضحاً. حاول مرة أخرى.";
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.name === "AbortError") {
+        return "انتهت مهلة الاتصال. يرجى التحقق من اتصالك والمحاولة مجدداً.";
+      }
+      console.error("[ChatBot] API Error:", err);
+      return "حدث خطأ في الاتصال. يرجى المحاولة مجدداً.";
+    }
+  }
+
+  // ── CORE SEND LOGIC ───────────────────────────────────────────
+  async function processMessage(message) {
+    if (!message) return;
+
+    appendMessage(message, "user");
+    showTyping();
+    lockUI();
+
+    const typingStart = Date.now();
+
+    try {
+      let botReply;
+
+      if (isVagueInput(message)) {
+        botReply = getVagueResponse();
+        // Small natural pause for vague replies too
+        const elapsed = Date.now() - typingStart;
+        if (elapsed < TYPING_MIN_MS) {
+          await new Promise((r) => setTimeout(r, TYPING_MIN_MS - elapsed));
+        }
+      } else {
+        botReply = await fetchBotReply(message);
+        // Ensure typing indicator shows for at least TYPING_MIN_MS
+        const elapsed = Date.now() - typingStart;
+        if (elapsed < TYPING_MIN_MS) {
+          await new Promise((r) => setTimeout(r, TYPING_MIN_MS - elapsed));
+        }
+      }
+
+      hideTyping();
+      appendMessage(botReply, "bot");
+    } catch (err) {
+      hideTyping();
+      appendMessage("حدث خطأ غير متوقع. يرجى المحاولة مجدداً.", "bot");
+      console.error("[ChatBot] Unexpected error:", err);
+    } finally {
+      unlockUI();
+      processQueue();
+    }
+  }
+
+  // ── QUEUE SYSTEM ──────────────────────────────────────────────
+  function enqueueMessage(message) {
+    messageQueue.push(message);
+    if (!isProcessingQueue) processQueue();
+  }
+
+  async function processQueue() {
+    if (isRequesting || messageQueue.length === 0) {
+      isProcessingQueue = false;
+      return;
+    }
+    isProcessingQueue = true;
+    const next = messageQueue.shift();
+    await processMessage(next);
+  }
+
+  // ── SEND HANDLER ──────────────────────────────────────────────
+  function handleSend() {
+    if (!userInput) return;
+    const message = userInput.value.trim();
+    if (!message) return;
+
+    // Prevent identical consecutive user messages
+    if (message === lastUserMessage && isRequesting) return;
+    lastUserMessage = message;
+
+    userInput.value = "";
+    userInput.style.height = "auto"; // reset textarea height if auto-resizing
+
+    if (isRequesting) {
+      // Queue if a request is in flight
+      messageQueue.push(message);
+    } else {
+      processMessage(message);
+    }
+  }
+
+  // ── EVENT LISTENERS ───────────────────────────────────────────
+  if (sendButton) {
+    sendButton.addEventListener("click", handleSend);
+  }
+
+  if (userInput) {
+    userInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    });
+
+    // Optional: auto-resize textarea
+    userInput.addEventListener("input", function () {
+      this.style.height = "auto";
+      this.style.height = Math.min(this.scrollHeight, 120) + "px";
+    });
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────
+  hideTyping();
+  scrollToBottom();
+  if (userInput) userInput.focus();
+})();    width: 42px;
     height: 42px;
     border-radius: 50%;
     background: linear-gradient(135deg, #c9a96e, #f0d080, #a07840);
